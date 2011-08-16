@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <stdlib.h>	/* malloc(), free() */
 #include <stddef.h>	/* offsetof */
+#include <errno.h>	/* errno */
 
 static ssize_t echo_on_conn_read(struct eh_connection *, unsigned char *, size_t);
 static void echo_on_conn_close(struct eh_connection *);
