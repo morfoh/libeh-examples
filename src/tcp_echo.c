@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#include <sys/socket.h>	/* socklen_t */
+
 #include <eh.h>		/* UNUSED() */
 #include <eh_watcher.h>	/* eh_signal_init() */
 #include <eh_socket.h>	/* eh_socket_ntop() */
