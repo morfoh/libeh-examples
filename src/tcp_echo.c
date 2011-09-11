@@ -7,6 +7,7 @@
 #include <eh.h>		/* UNUSED() */
 #include <eh_watcher.h>	/* eh_signal_init() */
 #include <eh_socket.h>	/* eh_socket_ntop() */
+#include <eh_list.h> /* eh_list */
 #include <eh_log.h>	/* debugf(), syserrf() */
 
 #include <assert.h>
