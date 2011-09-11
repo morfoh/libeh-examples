@@ -4,6 +4,7 @@
 
 #include <eh_server.h>
 #include <eh_list.h>
+#include <eh_connection.h>
 
 enum {
 	LISTEN_BACKLOG = 5,
