@@ -144,7 +144,7 @@ static int echo_init(struct echo_server *self, const char *addr, unsigned port)
 	memset(self, '\0', sizeof(*self));
 
 	/* socket */
-	switch (eh_server_ipv4_tcp(server, addr, port)) {
+	switch (eh_server_ipv4_tcp(server, addr, port, 1)) {
 	case -1:
 		syserrf("eh_server_ipv4_tcp(..., \"%s\", %u)", addr, port);
 		return -1;
