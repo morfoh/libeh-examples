@@ -38,7 +38,7 @@ static struct echo_conn *echo_new(struct echo_server *server, int fd)
 		struct eh_connection *conn = &self->conn;
 		memset(self, '\0', sizeof(*self));
 
-		eh_connection_init(conn, fd,
+		eh_connection_init(conn, fd, &echo_connection_callbacks,
 				   self->read_buffer, sizeof(self->read_buffer),
 				   self->write_buffer, sizeof(self->write_buffer));
 
