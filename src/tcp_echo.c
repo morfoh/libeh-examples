@@ -32,6 +32,11 @@ static struct eh_connection_cb echo_connection_callbacks = {
 };
 
 /*
+ * logging
+ */
+static struct eh_logger *logger;
+
+/*
  * helpers
  */
 static struct echo_conn *echo_new(struct echo_server *server, int fd)
@@ -72,7 +77,7 @@ static void echo_on_conn_close(struct eh_connection *conn)
 {
 	struct echo_conn *self = (struct echo_conn *)conn;
 
-	infof("%s: closed", self->name);
+	eh_log_infof(logger, 0, "%s: closed", self->name);
 	echo_free(self);
 }
 
@@ -82,17 +87,17 @@ static bool echo_on_conn_error(struct eh_connection *conn, enum eh_connection_er
 
 	switch (error) {
 	case EH_CONNECTION_READ_ERROR:
-		syserrf("%s: read()", self->name); break;
+		eh_log_syserrf(logger, 0, "%s: read()", self->name); break;
 	case EH_CONNECTION_WRITE_ERROR:
-		syserrf("%s: write()", self->name); break;
+		eh_log_syserrf(logger, 0, "%s: write()", self->name); break;
 	case EH_CONNECTION_READ_FULL:
-		errf("%s: read buffer is full", self->name); break;
+		eh_log_errf(logger, 0, "%s: read buffer is full", self->name); break;
 	case EH_CONNECTION_WRITE_FULL:
-		errf("%s: write buffer is full", self->name); break;
+		eh_log_errf(logger, 0, "%s: write buffer is full", self->name); break;
 	case EH_CONNECTION_READ_WATCHER_ERROR:
-		errf("%s: read watcher failed", self->name); break;
+		eh_log_errf(logger, 0, "%s: read watcher failed", self->name); break;
 	case EH_CONNECTION_WRITE_WATCHER_ERROR:
-		errf("%s: write watcher failed", self->name); break;
+		eh_log_errf(logger, 0,"%s: write watcher failed", self->name); break;
 	}
 	return true; /* close connection */
 }
@@ -102,7 +107,7 @@ static ssize_t echo_on_conn_read(struct eh_connection *conn, unsigned char *buff
 {
 	struct echo_conn *self = (struct echo_conn *)conn;
 
-	debugf("%s: read buffer at %p has %zu bytes", self->name, buffer, len);
+	eh_log_debugf(logger, 0, "%s: read buffer at %p has %zu bytes", self->name, buffer, len);
 	if (eh_connection_write(conn, buffer, len) < 0)
 		return -1;
 
@@ -120,13 +125,13 @@ static struct eh_connection *echo_on_connect(struct eh_server *__server, int fd,
 	struct echo_conn *self = echo_new(server, fd);
 
 	if (self == NULL) {
-		syserrf("echo_new(..., %d)", fd);
+		eh_log_syserrf(logger, 0, "echo_new(..., %d)", fd);
 	} else if (eh_socket_ntop(self->name, sizeof(self->name), sa, sa_len) < 0) {
-		syserr("eh_socket_ntop");
+		eh_log_syserr(logger, 0, "eh_socket_ntop");
 		echo_free(self);
 	} else {
 		/* happy case */
-		infof("%s: connected via fd %d", self->name, fd);
+		eh_log_infof(logger, 0, "%s: connected via fd %d", self->name, fd);
 
 		return &self->conn;
 	}
@@ -146,10 +151,10 @@ static int echo_init(struct echo_server *self, const char *addr, unsigned port)
 	/* socket */
 	switch (eh_server_ipv4_tcp(server, addr, port, 1)) {
 	case -1:
-		syserrf("eh_server_ipv4_tcp(..., \"%s\", %u)", addr, port);
+		eh_log_syserrf(logger, 0, "eh_server_ipv4_tcp(..., \"%s\", %u)", addr, port);
 		return -1;
 	case 0:
-		errf("eh_server_ipv4_tcp(..., \"%s\", %u): bad address",
+		eh_log_errf(logger, 0, "eh_server_ipv4_tcp(..., \"%s\", %u): bad address",
 		     addr, port);
 		return -1;
 	}
@@ -175,7 +180,7 @@ static inline void echo_stop(struct echo_server *self, struct ev_loop *loop)
 	eh_list_foreach(&self->connections, node) {
 		struct echo_conn *conn = container_of(node, struct echo_conn, siblings);
 
-		warnf("%s: killing", conn->name);
+		eh_log_warnf(logger, 0, "%s: killing", conn->name);
 		echo_conn_close(conn);
 	}
 
@@ -186,7 +191,7 @@ static void echo_signaled_stop(struct ev_loop *loop, struct ev_signal *w, int UN
 {
 	struct echo_server *self = w->data;
 
-	warnf("signal %d", w->signum);
+	eh_log_warnf(logger, 0, "signal %d", w->signum);
 
 	for (int i=0; i<2; i++)
 		eh_signal_stop(&sig[i], loop);
@@ -202,6 +207,10 @@ int main(int UNUSED(argc), char * UNUSED(argv[]))
 	struct ev_loop *loop = ev_default_loop(0);
 	struct echo_server server;
 
+	/* initialize logging and create a new logger */
+	eh_log_init(EH_LOG_DEBUG);
+	logger = eh_logger_new("tcp_echo");
+
 	if (echo_init(&server, "0", 12345) < 0)
 		return -1;
 
@@ -213,6 +222,9 @@ int main(int UNUSED(argc), char * UNUSED(argv[]))
 
 	echo_start(&server, loop);
 	ev_loop(loop, 0);
+
+	/* free all loggers */
+	eh_log_finish;
 
 	return 0;
 }
