@@ -25,8 +25,8 @@ struct echo_conn {
 	struct eh_connection conn;
 	struct eh_list siblings;
 
-	uint8_t read_buffer[READ_BUFFER_SIZE];
-	uint8_t write_buffer[WRITE_BUFFER_SIZE];
+	char read_buffer[READ_BUFFER_SIZE];
+	char write_buffer[WRITE_BUFFER_SIZE];
 
 	char name[CONN_MAXNAME];
 };
