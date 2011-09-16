@@ -17,7 +17,7 @@
 
 #include "tcp_echo.h"
 
-static ssize_t echo_on_conn_read(struct eh_connection *, unsigned char *, size_t);
+static ssize_t echo_on_conn_read(struct eh_connection *, char *, size_t);
 static void echo_on_conn_close(struct eh_connection *);
 static bool echo_on_conn_error(struct eh_connection *, enum eh_connection_error);
 
@@ -102,7 +102,7 @@ static bool echo_on_conn_error(struct eh_connection *conn, enum eh_connection_er
 	return true; /* close connection */
 }
 
-static ssize_t echo_on_conn_read(struct eh_connection *conn, unsigned char *buffer,
+static ssize_t echo_on_conn_read(struct eh_connection *conn, char *buffer,
 			      size_t len)
 {
 	struct echo_conn *self = (struct echo_conn *)conn;
