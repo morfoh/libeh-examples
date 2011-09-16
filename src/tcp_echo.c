@@ -224,7 +224,7 @@ int main(int UNUSED(argc), char * UNUSED(argv[]))
 	ev_loop(loop, 0);
 
 	/* free all loggers */
-	eh_log_finish;
+	(void)eh_log_finish;
 
 	return 0;
 }
